@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.27.7)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # paths
 set(src_path $ENV{src_path})
 set(bin_path $ENV{bin_path})
@@ -17,6 +20,8 @@ include_directories(${src_path})
 add_executable(
 ${project_name}
 ${src_path}/main.cpp
+${src_path}/Generator/Generator.cpp
+${src_path}/Configurations/StreamConfigurations.hpp
 )
 
 

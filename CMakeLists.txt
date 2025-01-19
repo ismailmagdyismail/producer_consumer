@@ -18,3 +18,7 @@ add_executable(
 ${project_name}
 ${src_path}/main.cpp
 )
+
+
+# Build type (RELEASE , DEBUG)
+set(CMAKE_BUILD_TYPE DEBUG)

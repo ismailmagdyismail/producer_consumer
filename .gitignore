@@ -4,3 +4,5 @@ bin
 .vscode
 cache
 ParametersDefines.hpp
+StreamConfigurations.hpp
+streamConfigurations.txt

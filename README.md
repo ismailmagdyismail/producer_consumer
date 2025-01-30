@@ -1,12 +1,16 @@
+# brief
+
+- POC for producer consumer problem
+- POC for async processing (i.e processing of message not done on same producer thread)
+- POC for Message / Event bus
+
 # supported features
 
 - Configuring Generator , and analyzer with the same configuration file
 - Generator generating basic EthernetPackets , with dummy payload
-- Payload is MAXPayload size
+- Simple producer(generator) consumer(analyzer) problem
+- Message Queue (Buffer) to decouple producer thread from consumer thread and process Events(Messages) in an Async way
 
-# TODO
+# Future Enhancements
 
 - [HIGH] add TCP sockets (or websockets) (or raw sockets)
-- [MID] add fragementation for packets
-- [MID] add eCPRI
-- [LOW] add default configurations for both generator, analyzer

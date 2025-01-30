@@ -1,4 +1,4 @@
-export exe_name=PGA
+export exe_name=POC_EXE
 
 export working_dir=${PWD}
 export src_dir=src

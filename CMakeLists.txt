@@ -21,6 +21,7 @@ add_executable(
 ${project_name}
 ${src_path}/main.cpp
 ${src_path}/Generator/Generator.cpp
+${src_path}/Engine.cpp
 )
 
 

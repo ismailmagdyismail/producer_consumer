@@ -8,16 +8,23 @@
 class Generator
 {
 public:
-  Generator() = delete;
-  Generator(DummyConfigurations &&configurations);
+  Generator() = default;
+
+  void configure(DummyConfigurations &&DummyConfigurations);
   bool getPacket(MacFrame &frame);
   bool isDone();
 
 private:
   bool consumePacket();
   bool lockFreeIsDone() const;
+  bool isConfigured();
 
-  DummyConfigurations m_oConfigurations;
+  //! frames
   std::mutex m_oFramesMutex;
   uint64_t m_ui64ProducedFrames{0};
+
+  //! configurations
+  std::mutex m_oConfigurationMutex;
+  bool m_bIsConfigured{false};
+  DummyConfigurations m_oConfigurations;
 };

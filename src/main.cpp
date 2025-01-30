@@ -1,22 +1,12 @@
 //! system includes
 #include <iostream>
 
-//! generator
-#include "Generator/Generator.hpp"
+#include "Engine.hpp"
 
 int main()
 {
-
-    // bool bIsGeneratorDone = Generator.
-    char *pDestAddress = new char[5]{"1111"};
-    char *pSrcAddress = new char[5]{"FFFF"};
-    uint32_t ui32FramesCount = 32;
-    Generator oGenerator(DummyConfigurations(ui32FramesCount, pDestAddress, pSrcAddress));
-
-    do
-    {
-        MacFrame frame;
-        oGenerator.getPacket(frame);
-        std::cout << "Frame:" << frame.m_pSrcAddress << '\n';
-    } while (!oGenerator.isDone());
+    Engine engine;
+    DummyConfigurations configurations = DummyConfigurations(32, new char[9]{"11111111"}, new char[9]{"FFFFFFFF"});
+    engine.configure(std::move(configurations));
+    engine.start();
 }

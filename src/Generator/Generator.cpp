@@ -4,13 +4,9 @@
 #define FAULTY_PACKET 2
 #define FIELD_SIZE 9
 
-Generator::Generator(DummyConfigurations &&p_oConfigurations) : m_oConfigurations{std::move(p_oConfigurations)}
-{
-}
-
 bool Generator::getPacket(MacFrame &p_oPacket)
 {
-  if (consumePacket())
+  if (!isConfigured() || consumePacket())
   {
     return false;
   }
@@ -61,4 +57,17 @@ bool Generator::isDone()
 bool Generator::lockFreeIsDone() const
 {
   return (m_oConfigurations.m_ui32framesCount == m_ui64ProducedFrames);
+}
+
+bool Generator::isConfigured()
+{
+  std::lock_guard<std::mutex> lock{m_oConfigurationMutex};
+  return m_bIsConfigured;
+}
+
+void Generator::configure(DummyConfigurations &&p_oConfigurations)
+{
+  std::lock_guard<std::mutex> lock{m_oConfigurationMutex};
+  m_oConfigurations = std::move(p_oConfigurations);
+  m_bIsConfigured = true;
 }

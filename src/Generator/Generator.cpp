@@ -4,36 +4,91 @@
 #define FAULTY_PACKET 2
 #define FIELD_SIZE 9
 
-bool Generator::getPacket(MacFrame &p_oPacket)
+void Generator::generatePacket()
 {
-  if (!isConfigured() || consumePacket())
+  m_oStateMutex.lock();
+  while (GeneratorState::STARTED == m_eState)
   {
-    return false;
+    m_oStateMutex.unlock();
+    bool bNewPacketConsumed = consumePacket();
+    if (!bNewPacketConsumed)
+    {
+      //! all packets generated so stop producer thread
+      std::cout << "Auto stop\n"
+                << std::endl;
+      autoStop();
+      return;
+    }
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(1, 2);
+    int randomNumber = distrib(gen);
+
+    MacFrame *pPacket = new MacFrame;
+    if (FAULTY_PACKET != randomNumber)
+    {
+      //! read src , mac address from  configurations
+      pPacket->m_pDestAdress = new char[FIELD_SIZE];
+      pPacket->m_pSrcAddress = new char[FIELD_SIZE];
+
+      std::strncpy(pPacket->m_pDestAdress, m_oConfigurations.m_pDestAdress, FIELD_SIZE);
+      std::strncpy(pPacket->m_pSrcAddress, m_oConfigurations.m_pSrcAddress, FIELD_SIZE);
+    }
+    else
+    {
+      //! simulate faulty packets
+      pPacket->m_pDestAdress = new char[FIELD_SIZE]{"xxxxxxxx"};
+      pPacket->m_pSrcAddress = new char[FIELD_SIZE]{"xxxxxxxx"};
+    }
+    pPacket->m_pPayload = new char[FIELD_SIZE]{"ABCDEF12"};
+    pPacket->m_pFCS = new char[FIELD_SIZE]{"FFFFFFFF"};
+    m_oGeneratedPacketsQueue.push(pPacket);
+
+    m_oStateMutex.lock();
+  }
+}
+
+void Generator::start()
+{
+  {
+    std::lock_guard<std::mutex> lock{m_oStateMutex};
+    if (GeneratorState::CONFIGURED != m_eState)
+    {
+      return;
+    }
+    m_eState = GeneratorState::STARTED;
   }
 
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_int_distribution<> distrib(1, 2);
-  int randomNumber = distrib(gen);
+  m_oThread.start();
+}
 
-  if (FAULTY_PACKET != randomNumber)
-  {
-    //! read src , mac address from  configurations
-    p_oPacket.m_pDestAdress = new char[FIELD_SIZE];
-    p_oPacket.m_pSrcAddress = new char[FIELD_SIZE];
+void Generator::autoStop()
+{
+  std::lock_guard<std::mutex> lock{m_oStateMutex};
+  m_eState = GeneratorState::STOPPED;
+  // m_oThread.stop(); CANNOT JOIN THREAD WITHIN ITSELF
+}
 
-    std::strncpy(p_oPacket.m_pDestAdress, m_oConfigurations.m_pDestAdress, FIELD_SIZE);
-    std::strncpy(p_oPacket.m_pSrcAddress, m_oConfigurations.m_pSrcAddress, FIELD_SIZE);
-  }
-  else
+void Generator::stop()
+{
+  //! NOTE if lock is held for whole duration (throught call to m_oThread.stop()) deadlock will arise between stop() , autoStop()
   {
-    //! simulate faulty packets
-    p_oPacket.m_pDestAdress = new char[FIELD_SIZE]{"xxxxxxxx"};
-    p_oPacket.m_pSrcAddress = new char[FIELD_SIZE]{"xxxxxxxx"};
+    std::lock_guard<std::mutex> lock{m_oStateMutex};
+    m_eState = GeneratorState::STOPPED;
   }
-  p_oPacket.m_pPayload = new char[FIELD_SIZE]{"ABCDEF12"};
-  p_oPacket.m_pFCS = new char[FIELD_SIZE]{"FFFFFFFF"};
-  return true;
+  m_oThread.stop();
+}
+
+MacFrame *Generator::getPacket()
+{
+  std::lock_guard<std::mutex> lock{m_oConsumedCountMutex};
+  if (lockFreeIsAllConsumed())
+  {
+    return nullptr;
+  }
+  MacFrame *pMacFrame = m_oGeneratedPacketsQueue.pop();
+  m_ui32ConsumedCount++;
+  return pMacFrame;
 }
 
 // NOTE similar issue/problem as the inhert thread unsafty to stack interface
@@ -44,8 +99,9 @@ bool Generator::consumePacket()
   if (!bIsDone)
   {
     m_ui64ProducedFrames++;
+    return true;
   }
-  return bIsDone;
+  return false;
 }
 
 bool Generator::isDone()
@@ -59,15 +115,44 @@ bool Generator::lockFreeIsDone() const
   return (m_oConfigurations.m_ui32framesCount == m_ui64ProducedFrames);
 }
 
-bool Generator::isConfigured()
+bool Generator::lockFreeIsAllConsumed() const
 {
-  std::lock_guard<std::mutex> lock{m_oConfigurationMutex};
-  return m_bIsConfigured;
+  return (m_ui32ConsumedCount == m_oConfigurations.m_ui32framesCount);
 }
 
 void Generator::configure(DummyConfigurations &&p_oConfigurations)
 {
-  std::lock_guard<std::mutex> lock{m_oConfigurationMutex};
+  std::lock_guard<std::mutex> lock{m_oStateMutex};
+  if (GeneratorState::STARTED == m_eState)
+  {
+    return;
+  }
   m_oConfigurations = std::move(p_oConfigurations);
-  m_bIsConfigured = true;
+  m_eState = GeneratorState::CONFIGURED;
 }
+
+Generator::~Generator()
+{
+  stop();
+  m_oGeneratedPacketsQueue.clear();
+}
+
+//******************************************************************************************/
+
+// BAD_DESIGN
+// bool Generator::getPacket(MacFrame **p_ppPacket)
+// {
+//   //! NOTE :DEADLOCK
+//   //! Since Pop is blocking , and same mutex is held by consumer , producer
+//   //! if queue is empty, consumer is holding lock => deadlock ; producer cannot fill queue
+//   // std::lock_guard<std::mutex> lock{m_oFramesMutex};
+
+//   std::lock_guard<std::mutex> lock{m_oConsumedCountMutex};
+//   if (lockFreeIsAllConsumed())
+//   {
+//     return false;
+//   }
+//   m_oGeneratedPacketsQueue.pop(p_ppPacket);
+//   m_ui32ConsumedCount++;
+//   return true;
+// }

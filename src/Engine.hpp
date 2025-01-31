@@ -10,6 +10,8 @@ public:
   void configure(DummyConfigurations &&configurations);
   void start();
 
+  ~Engine() = default;
+
 private:
   Generator m_oGenerator;
 };

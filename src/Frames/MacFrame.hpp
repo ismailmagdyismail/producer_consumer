@@ -5,11 +5,8 @@ class MacFrame
 {
 public:
   MacFrame() = default;
-  // explicit MacFrame(MacFrame &&other) = default;
-  void toHEX(char *p_hexValue)
-  {
-    // p_hexValue
-  }
+  explicit MacFrame(MacFrame &&other) = delete;
+
   ~MacFrame()
   {
     delete m_pDestAdress;

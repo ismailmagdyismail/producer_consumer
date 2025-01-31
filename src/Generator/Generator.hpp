@@ -4,7 +4,7 @@
 
 #include "Configurations/DummyConfigurations.hpp"
 #include "Frames/MacFrame.hpp"
-#include "ConcurrencyEngine/Thread.hpp"
+#include "Thread/Thread.hpp"
 #include "Queues/Queue.hpp"
 
 enum class GeneratorState : uint8_t

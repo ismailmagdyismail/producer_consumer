@@ -3,6 +3,4 @@ bin
 .DS_store
 .vscode
 cache
-ParametersDefines.hpp
-StreamConfigurations.hpp
-streamConfigurations.txt
+*.txt

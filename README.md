@@ -14,3 +14,5 @@
 # Future Enhancements
 
 - [HIGH] add TCP sockets (or websockets) (or raw sockets)
+- [MID] generate actual frames based on configurations at run time
+- [MID] generate different payload types

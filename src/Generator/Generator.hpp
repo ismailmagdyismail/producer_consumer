@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mutex>
+#include <fstream>
 
 #include "Configurations/DummyConfigurations.hpp"
 #include "Frames/MacFrame.hpp"
@@ -51,4 +52,6 @@ private:
   //! consumed packets
   uint32_t m_ui32ConsumedCount{0};
   std::mutex m_oConsumedCountMutex;
+
+  std::ofstream m_oTxReportFile{"Tx_report.txt"};
 };

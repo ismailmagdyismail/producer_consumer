@@ -14,8 +14,8 @@ void Generator::generatePacket()
     if (!bNewPacketConsumed)
     {
       //! all packets generated so stop producer thread
-      std::cout << "Auto stop\n"
-                << std::endl;
+      m_oTxReportFile << "Auto stop"
+                      << std::endl;
       autoStop();
       return;
     }
@@ -43,6 +43,10 @@ void Generator::generatePacket()
     pPacket->m_pPayload = new char[FIELD_SIZE]{"ABCDEF12"};
     pPacket->m_pFCS = new char[FIELD_SIZE]{"FFFFFFFF"};
     m_oGeneratedPacketsQueue.push(pPacket);
+
+    const char *pHEX = pPacket->toHEX();
+    m_oTxReportFile << "Frame " << m_ui64ProducedFrames << " " << pHEX << std::endl;
+    delete[] pHEX;
 
     m_oStateMutex.lock();
   }

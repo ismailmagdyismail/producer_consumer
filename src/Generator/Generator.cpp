@@ -4,6 +4,10 @@
 #define FAULTY_PACKET 2
 #define FIELD_SIZE 9
 
+// BAD DESIGN , Analyzer is better desinged , handler more cases in a simpler way
+//! race in accessing packet number in reporting
+//! race between start , stop state machines
+
 void Generator::generatePacket()
 {
   m_oStateMutex.lock();
@@ -31,8 +35,8 @@ void Generator::generatePacket()
       pPacket->m_pDestAdress = new char[FIELD_SIZE];
       pPacket->m_pSrcAddress = new char[FIELD_SIZE];
 
-      std::strncpy(pPacket->m_pDestAdress, m_oConfigurations.m_pDestAdress, FIELD_SIZE);
-      std::strncpy(pPacket->m_pSrcAddress, m_oConfigurations.m_pSrcAddress, FIELD_SIZE);
+      std::strncpy(pPacket->m_pDestAdress, m_oConfigurations->m_pDestAdress, FIELD_SIZE);
+      std::strncpy(pPacket->m_pSrcAddress, m_oConfigurations->m_pSrcAddress, FIELD_SIZE);
     }
     else
     {
@@ -52,6 +56,9 @@ void Generator::generatePacket()
   }
 }
 
+//! START, STOP can cause race conditions in this implemntation since they are not fully atomic
+//! suffer from the same problems as the stack interface
+//! solution is hold lock for whole duration
 void Generator::start()
 {
   {
@@ -115,22 +122,22 @@ bool Generator::isDone()
 
 bool Generator::lockFreeIsDone() const
 {
-  return (m_oConfigurations.m_ui32framesCount == m_ui64ProducedFrames);
+  return (m_oConfigurations->m_ui32framesCount == m_ui64ProducedFrames);
 }
 
 bool Generator::lockFreeIsAllConsumed() const
 {
-  return (m_ui32ConsumedCount == m_oConfigurations.m_ui32framesCount);
+  return (m_ui32ConsumedCount == m_oConfigurations->m_ui32framesCount);
 }
 
-void Generator::configure(DummyConfigurations &&p_oConfigurations)
+void Generator::configure(std::shared_ptr<DummyConfigurations> p_oConfigurations)
 {
   std::lock_guard<std::mutex> lock{m_oStateMutex};
   if (GeneratorState::STARTED == m_eState)
   {
     return;
   }
-  m_oConfigurations = std::move(p_oConfigurations);
+  m_oConfigurations = p_oConfigurations;
   m_eState = GeneratorState::CONFIGURED;
 }
 

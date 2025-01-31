@@ -21,7 +21,7 @@ public:
   Generator() = default;
   ~Generator();
 
-  void configure(DummyConfigurations &&DummyConfigurations);
+  void configure(std::shared_ptr<DummyConfigurations> DummyConfigurations);
   void start();
   bool isDone();
   MacFrame *getPacket();
@@ -43,7 +43,7 @@ private:
   GeneratorState m_eState{GeneratorState::STOPPED};
 
   //! configurations
-  DummyConfigurations m_oConfigurations;
+  std::shared_ptr<DummyConfigurations> m_oConfigurations;
 
   //! producer thread, buffers
   Thread m_oThread{std::bind(&Generator::generatePacket, this)};

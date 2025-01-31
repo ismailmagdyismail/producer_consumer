@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Generator/Generator.hpp"
+#include "Analyzer/Analyzer.hpp"
 
 class Engine
 {
@@ -14,4 +15,5 @@ public:
 
 private:
   Generator m_oGenerator;
+  Analyzer m_oAnalyzer;
 };

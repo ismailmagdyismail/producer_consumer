@@ -58,7 +58,6 @@ void Generator::start()
     }
     m_eState = GeneratorState::STARTED;
   }
-
   m_oThread.start();
 }
 
@@ -136,23 +135,3 @@ Generator::~Generator()
   stop();
   m_oGeneratedPacketsQueue.clear();
 }
-
-//******************************************************************************************/
-
-// BAD_DESIGN
-// bool Generator::getPacket(MacFrame **p_ppPacket)
-// {
-//   //! NOTE :DEADLOCK
-//   //! Since Pop is blocking , and same mutex is held by consumer , producer
-//   //! if queue is empty, consumer is holding lock => deadlock ; producer cannot fill queue
-//   // std::lock_guard<std::mutex> lock{m_oFramesMutex};
-
-//   std::lock_guard<std::mutex> lock{m_oConsumedCountMutex};
-//   if (lockFreeIsAllConsumed())
-//   {
-//     return false;
-//   }
-//   m_oGeneratedPacketsQueue.pop(p_ppPacket);
-//   m_ui32ConsumedCount++;
-//   return true;
-// }

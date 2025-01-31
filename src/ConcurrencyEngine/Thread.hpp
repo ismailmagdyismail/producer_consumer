@@ -39,14 +39,7 @@ public:
     m_bThreadStarted = false;
     m_oThread.join();
   }
-  // void join()
-  // {
-  //   stop();
-  //   if (m_oThread.joinable())
-  //   {
-  //     m_oThread.join();
-  //   }
-  // }
+
   ~Thread()
   {
     stop();

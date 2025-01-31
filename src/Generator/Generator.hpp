@@ -23,7 +23,6 @@ public:
   void configure(DummyConfigurations &&DummyConfigurations);
   void start();
   bool isDone();
-  // bool getPacket(MacFrame **frame);
   MacFrame *getPacket();
   void stop();
 

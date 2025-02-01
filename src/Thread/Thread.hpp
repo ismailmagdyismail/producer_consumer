@@ -27,7 +27,7 @@ public:
       m_fWorkerThreadHandler();
     };
     m_oThread = std::thread{oWorker};
-    m_oThread.detach();
+    // m_oThread.detach();
   }
   void stop()
   {

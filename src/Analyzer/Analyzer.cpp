@@ -109,7 +109,7 @@ int64_t Analyzer::consumeFrame()
   std::lock_guard<std::mutex> lock{m_oConumedMessagesMutex};
   if (m_ui32ConsumedMessagesCount == m_oConfigurations->m_ui32framesCount)
   {
-    return -1;
+    return ALL_CONSUMED;
   }
   m_ui32ConsumedMessagesCount++;
   return m_ui32ConsumedMessagesCount;

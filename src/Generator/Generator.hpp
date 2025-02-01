@@ -23,20 +23,25 @@ public:
 
   void configure(std::shared_ptr<DummyConfigurations> DummyConfigurations);
   void start();
-  bool isDone();
-  MacFrame *getPacket();
   void stop();
+  MacFrame *getPacket();
 
 private:
-  void generatePacket();
-  bool consumePacket();
-  bool lockFreeIsDone() const;
-  bool lockFreeIsAllConsumed() const;
+  //! producing / generating packets
+  void generatePackets();
+  MacFrame *generatePacket(int32_t &p_si32PacketNumber);
+  int32_t producePacket();
   void autoStop();
+  void reportPacket(MacFrame *p_pPacket, int32_t p_si32PacketNumber);
+  bool lockFreeIsDone() const;
+
+  //! reading packets
+  bool consumePacket();
+  bool lockFreeIsAllConsumed() const;
 
   //! frames
   std::mutex m_oFramesMutex;
-  uint64_t m_ui64ProducedFrames{0};
+  uint32_t m_ui32ProducedFrames{0};
 
   //! state
   std::mutex m_oStateMutex;
@@ -46,7 +51,7 @@ private:
   std::shared_ptr<DummyConfigurations> m_oConfigurations;
 
   //! producer thread, buffers
-  Thread m_oThread{std::bind(&Generator::generatePacket, this)};
+  Thread m_oThread{std::bind(&Generator::generatePackets, this)};
   Queue m_oGeneratedPacketsQueue;
 
   //! consumed packets

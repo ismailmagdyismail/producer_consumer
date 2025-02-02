@@ -23,7 +23,6 @@ public:
 
   void configure(std::shared_ptr<DummyConfigurations> DummyConfigurations);
   void start();
-  void stop();
   MacFrame *getPacket();
 
 private:
@@ -34,6 +33,7 @@ private:
   void autoStop();
   void reportPacket(MacFrame *p_pPacket, int32_t p_si32PacketNumber);
   bool lockFreeIsDone() const;
+  void stop();
 
   //! reading packets
   bool consumePacket();

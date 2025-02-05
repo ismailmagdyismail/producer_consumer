@@ -19,6 +19,7 @@ class Analyzer
 public:
   void configure(std::shared_ptr<DummyConfigurations>);
   void start();
+  void stop();
   bool analyzeFrame(MacFrame *frame);
   bool isDone();
   void finalize();
@@ -30,7 +31,6 @@ private:
   void processFrame(MacFrame *p_pFrame, int64_t p_ui32FrameNumber);
   int64_t consumeFrame();
   void autoStop();
-  void stop();
 
   std::shared_ptr<DummyConfigurations> m_oConfigurations;
 

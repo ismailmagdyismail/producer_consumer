@@ -34,7 +34,7 @@ void Analyzer::stop()
     return;
   }
   m_eState = AnalyzerState::STOPPED;
-  m_oThread.stop(); //! calls start while holding lock to be ATOMIC, state machine consitent with thread state
+  // m_oThread.stop(); //! calls start while holding lock to be ATOMIC, state machine consitent with thread state
 }
 
 bool Analyzer::analyzeFrame(MacFrame *frame)

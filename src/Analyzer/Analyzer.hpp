@@ -30,7 +30,6 @@ private:
   void processMessages();
   void processFrame(MacFrame *p_pFrame, int64_t p_ui32FrameNumber);
   int64_t consumeFrame();
-  void autoStop();
 
   std::shared_ptr<DummyConfigurations> m_oConfigurations;
 
@@ -49,6 +48,7 @@ private:
   uint32_t m_ui32MessagesReceived{0};
 
   //! analyzer state
+  std::condition_variable m_oStateCv;
   std::mutex m_oStateMutex;
   AnalyzerState m_eState{AnalyzerState::STOPPED};
 

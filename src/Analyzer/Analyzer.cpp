@@ -24,6 +24,7 @@ void Analyzer::start()
   }
   m_eState = AnalyzerState::STARTED;
   m_oThread.start(); //! calls start while holding lock to be ATOMIC, state machine consitent with thread state
+  m_oStateCv.notify_all();
 }
 
 void Analyzer::stop()
@@ -34,6 +35,7 @@ void Analyzer::stop()
     return;
   }
   m_eState = AnalyzerState::STOPPED;
+  m_oStateCv.notify_all();
   // m_oThread.stop(); //! calls start while holding lock to be ATOMIC, state machine consitent with thread state
 }
 
@@ -60,7 +62,7 @@ void Analyzer::processMessages()
     {
       m_oRxReportFile << "Auto stop"
                       << std::endl;
-      autoStop();
+      stop();
       return;
     }
     MacFrame *pMacFrame = m_oFramesQueue.pop();
@@ -68,12 +70,6 @@ void Analyzer::processMessages()
     processFrame(pMacFrame, ui32FrameNumber);
     m_oStateMutex.lock();
   }
-}
-
-void Analyzer::autoStop()
-{
-  std::lock_guard<std::mutex> lock{m_oStateMutex};
-  m_eState = AnalyzerState::STOPPED;
 }
 
 void Analyzer::processFrame(MacFrame *p_pFrame, int64_t p_ui32FrameNumber)
@@ -90,18 +86,9 @@ void Analyzer::processFrame(MacFrame *p_pFrame, int64_t p_ui32FrameNumber)
 
 void Analyzer::finalize()
 {
-  {
-    std::lock_guard<std::mutex> lock{m_oStateMutex};
-    if (AnalyzerState::STOPPED == m_eState)
-    {
-      return;
-    }
-  }
-
-  while (!isDone())
-  {
-    usleep(100);
-  }
+  std::unique_lock<std::mutex> lock{m_oStateMutex};
+  m_oStateCv.wait(lock, [this]() -> bool
+                  { return AnalyzerState::STOPPED == m_eState && m_ui32ConsumedMessagesCount == m_oConfigurations->m_ui32framesCount; });
 }
 
 int64_t Analyzer::consumeFrame()

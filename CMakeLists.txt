@@ -27,4 +27,4 @@ ${src_path}/Engine.cpp
 
 
 # Build type (RELEASE , DEBUG)
-set(CMAKE_BUILD_TYPE RELEASE)
+set(CMAKE_BUILD_TYPE DEBUG)
